@@ -2,16 +2,18 @@
 
 MONOREPO_ROOT := ../
 HERE=$(shell pwd)
+export MAINTAINER ?= lehrstuhlkesdogan
 export MONOREPO_REVISION := $(shell git rev-parse HEAD)
 export BRANCH_NAME ?= $(shell git rev-parse --abbrev-ref HEAD)
-export OVERLEAF_BASE_BRANCH ?= sharelatex/sharelatex-base:$(BRANCH_NAME)
-export OVERLEAF_BASE_LATEST ?= sharelatex/sharelatex-base
-export OVERLEAF_BASE_TAG ?= sharelatex/sharelatex-base:$(BRANCH_NAME)-$(MONOREPO_REVISION)
-export OVERLEAF_BRANCH ?= sharelatex/sharelatex:$(BRANCH_NAME)
-export OVERLEAF_LATEST ?= sharelatex/sharelatex
-export OVERLEAF_TAG ?= sharelatex/sharelatex:$(BRANCH_NAME)-$(MONOREPO_REVISION)
+export OVERLEAF_BASE_BRANCH ?= $(MAINTAINER)/sharelatex-base:$(BRANCH_NAME)
+export OVERLEAF_BASE_LATEST ?= $(MAINTAINER)/sharelatex-base
+export OVERLEAF_BASE_TAG ?= $(MAINTAINER)/sharelatex-base:$(BRANCH_NAME)-$(MONOREPO_REVISION)
+export OVERLEAF_BRANCH ?= $(MAINTAINER)/sharelatex:$(BRANCH_NAME)
+export OVERLEAF_LATEST ?= $(MAINTAINER)/sharelatex
+export OVERLEAF_TAG ?= $(MAINTAINER)/sharelatex:$(BRANCH_NAME)-$(MONOREPO_REVISION)
+export OVERLEAF_FULL_BRANCH ?= $(OVERLEAF_BRANCH)-full-scheme
 
-all: build-base build-community
+all: build-base build-community build-full
 
 build-base:
 	cp .dockerignore $(MONOREPO_ROOT)
@@ -41,6 +43,13 @@ build-community:
 	  --tag $(OVERLEAF_TAG) \
 	  --tag $(OVERLEAF_BRANCH) \
 	  --network=host \
+	  $(MONOREPO_ROOT)
+
+  build-full: build-community
+	docker build \
+	  --build-arg OVERLEAF_TAG \
+	  --file Dockerfile-full \
+	  --tag $(OVERLEAF_FULL_BRANCH) \
 	  $(MONOREPO_ROOT)
 
 SHELLCHECK_OPTS = \
